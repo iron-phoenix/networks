@@ -20,13 +20,15 @@ check_sum ( u_int16_t* buf, u_int32_t size ) {
     return (u_int16_t)(~sum);
 }
 
-u_int32_t get_timestamp () {
+u_int32_t
+get_timestamp () {
     timeval tv;
     gettimeofday(&tv, NULL);
     return (u_int32_t)((tv.tv_sec % 86400) * 1000.0 + tv.tv_usec / 1000.0);
 }
 
-bool check_packet ( icmp* packet ) {
+bool
+check_packet ( icmp* packet ) {
     u_int16_t packet_cksum = packet->icmp_cksum;
     packet->icmp_cksum = 0;
     bool result = (packet_cksum == check_sum((u_int16_t*)packet, sizeof(*packet)));
