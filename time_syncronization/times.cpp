@@ -89,7 +89,7 @@ main ( int argc, char *argv[] ) {
 
   if ( !check_packet(icmp_resp) ) {
       printf("Corrupted response\n");
-      //return 6;
+      return 6;
   }
 
   printf("Originate: %d ms\nReceive: %d ms\nTransmit: %d ms\n",
