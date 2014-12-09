@@ -1,0 +1,4 @@
+Band name: '{{ band_name }}'
+Albums:
+{% for album in albums %}	{{ album.decode('utf-8') }}
+{% endfor %}

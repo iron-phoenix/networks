@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head lang="ru">
+	<meta charset="UTF-8">
+	<title>Rock</title>
+</head>
+<body>
+{% for band in bands %}
+<table>
+<caption><h1 style="float:left">{{ band }}</h1></caption>
+  <tr>
+    <td><img src="{{ url_for('static', filename = ['photos', bands[band].photo]|join('/')) }}" style="float:left;width:auto;height:50%"></td>
+	<td><ul>
+	{% for album in bands[band].albums %}
+		<li>{{ album.decode('utf-8') }}</li>
+	{% endfor %}
+	</ul>
+	</td>
+  </tr>
+</table>
+{% endfor %}
+</body>
+</html>

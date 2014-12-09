@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<band name = '{{ band_name }}'>
+	<albums>
+		{% for album in albums %}
+			<album>{{ album.decode('utf-8') }}</album>
+		{% endfor %}
+	</albums>
+</band>
