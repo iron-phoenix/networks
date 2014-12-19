@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <netinet/ip_icmp.h>
 #include <netinet/ip.h>
+#include <time.h>
 
 #define BUFFER_SIZE 4096
 
@@ -60,7 +61,7 @@ main ( int argc, char *argv[] ) {
 
   struct timeval t_recv = {0};
   t_recv.tv_sec = 5;
-  setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (char *)&t_recv, sizeof(struct timeval));
+  setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &t_recv, sizeof(timeval));
 
   sockaddr_in src = {0};
   src.sin_family = AF_INET;
@@ -87,7 +88,7 @@ main ( int argc, char *argv[] ) {
   icmp* icmp_resp = NULL;
   char buf[BUFFER_SIZE];
   do {
-      ssize_t recv_bytes = recvfrom(sock, buf, BUFFER_SIZE, -1, NULL, NULL);
+      ssize_t recv_bytes = recvfrom(sock, buf, BUFFER_SIZE, 0, 0, 0);
       if (recv_bytes < 0) {
           printf("Can't connect to server\n");
           return 7;
@@ -106,7 +107,11 @@ main ( int argc, char *argv[] ) {
           ntohl(icmp_resp->icmp_otime),
           ntohl(icmp_resp->icmp_rtime),
           ntohl(icmp_resp->icmp_ttime));
+  
+  long curTime = get_timestamp();
+  long travelTime = (ntohl(icmp_resp->icmp_rtime) - ntohl(icmp_resp->icmp_otime)) + (curTime - ntohl(icmp_resp->icmp_ttime)) / 2;
+  long delta = (ntohl(icmp_resp->icmp_rtime) - ntohl(icmp_resp->icmp_otime)) - travelTime;
 
-  printf("\nDelta: %d ms\n", ntohl(icmp_resp->icmp_otime) - ntohl(icmp_resp->icmp_ttime));
+  printf("\nDelta: %li ms\n", delta);
   return 0;
 }
