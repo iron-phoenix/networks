@@ -58,6 +58,10 @@ main ( int argc, char *argv[] ) {
       return 3;
   }
 
+  struct timeval t_recv = {0};
+  t_recv.tv_sec = 5;
+  setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (char *)&t_recv, sizeof(struct timeval));
+
   sockaddr_in src = {0};
   src.sin_family = AF_INET;
 
@@ -83,7 +87,11 @@ main ( int argc, char *argv[] ) {
   icmp* icmp_resp = NULL;
   char buf[BUFFER_SIZE];
   do {
-      recvfrom(sock, buf, BUFFER_SIZE, 0, NULL, NULL);
+      ssize_t recv_bytes = recvfrom(sock, buf, BUFFER_SIZE, -1, NULL, NULL);
+      if (recv_bytes < 0) {
+          printf("Can't connect to server\n");
+          return 7;
+      }
       ip_resp = (ip*)buf;
       icmp_resp = (icmp*)(buf + (ip_resp->ip_hl << 2));
   } while ( icmp_resp->icmp_type != 14 );
