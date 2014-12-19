@@ -1,0 +1,7 @@
+{% for band in bands %}
+Band name: '{{ band }}'
+Photo: {{ bands[band].photo }}
+Albums:
+{% for album in bands[band].albums %}	{{ album.decode('utf-8') }}
+{% endfor %}
+{% endfor %}

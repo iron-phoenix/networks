@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head lang="ru">
+	<meta charset="UTF-8">
+	<title>Rock</title>
+</head>
+<body>
+<pre>
+This service provide the access to small data base of "old school" rock musicians and bands.
+
+Mark multiformat means that the response can have different format.
+You can set Content-Type header as 'text/html', 'text/plain', 'application/json', 'application/xml' or 'text/xml'.
+
+Short list of requests:
+<ul>
+	<li>GET https://"hostname"/ - return this page :) Format: html</li>
+	<li>GET https://"hostname"/rock - return full database. Format: multiformat</li>
+	<li>PUT https://"hostname"/task - add task. Task cat return 'count' albums of 'name'. You need to set parameters 'name' and 'count'(optional) as json request. Format: json</li>
+	<li>GET https://"hostname"/task/"id" - get task by id. Format: multiformat</li>
+	<li>DELETE https://"hostname"/task/"id" - delete task by id. Format: text</li>
+	<li>POST https://"hostname"/task/"id" - modify task by id. You need to set 'count' as json request. Format: json</li>
+	<li>GET https://"hostname"/statistics - get statictics. Format: text</li>
+</ul>
+
+Example of working with tasks:
+
+PUT https://"hostname"/task
+Content-Type: application/json
+{"name": "Iggy Pop", "count" : 7}
+
+Result:
+
+{
+    "task": {
+        "count": 7,
+        "id": 9,
+        "name": "Iggy Pop"
+    }
+}
+
+GET https://"hostname"/task/9
+Content-Type: application/xml
+
+Result:
+
+{
+    "Iggy Pop": {
+        "albums": [
+            "The Idiot",
+            "Lust for Life",
+            "New Values",
+            "Soldier",
+            "Party",
+            "Zombie Birdhouse",
+            "Blah Blah Blah"
+        ]
+    }
+}
+
+</pre>
+</body>
+</html>
