@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from multiprocessing import Process, Lock, Condition, Queue
+from multiprocessing import Process, Manager, Lock, Condition, Queue
 from contextlib import closing
 import socket
 import time
@@ -10,22 +10,29 @@ HOST = "127.0.0.1"
 PORT = 5000
 
 class ClientProcess(Process):
-    def __init__(self, condition, queue, lock):
+    def __init__(self, shared, condition, queue):
         Process.__init__(self)
+        self._shared = shared
         self._condition = condition
         self._queue = queue
-        self._lock = lock
         self.start()
 
     def run(self):
+        self._shared[self.pid] = 0
         while 1:
             self._condition.acquire()
-            self._condition.wait()
+            self._condition.wait(5)
             self._condition.release()
-            self._lock.acquire()
-            if self._queue.qsize() > 0:
+            if self._queue.qsize() > 1:
+                # we have the task
+                self._shared[self.pid] = 1 # execution
                 with closing(socket.fromfd(self._queue.get(), S.AF_INET, S.SOCK_STREAM)) as sock:
                     self.handle(sock)
+                self._shared[self.pid] = 0 # wait
+            else:
+                # wake up by timeout
+                self._shared[self.pid] = 2 # terminated
+                break
 
 
     def handle(self, sock):
@@ -36,13 +43,15 @@ class Server:
         self._host = host
         self._port = port
         self._hots = hots
+        manager = Manager()
+        self._shared = manager.dict()
         self._condition = Condition()
         self._queue = Queue()
-        self._queue_lock = Lock()
-        self.processes = [ClientProcess(self._condition, self._queue_lock) for _ in xrange(hots)]
+        self.processes = [ClientProcess(self._shared, self._condition, self._queue) for _ in xrange(hots)]
 
     def start(self):
         while(1):
+            print self._shared
             time.sleep(1)
 
 if __name__ == "__main__":
