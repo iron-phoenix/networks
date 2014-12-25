@@ -63,18 +63,14 @@ class Server:
 
             while 1:
                 (conn, addr) = soc.accept()
-                free_id = -1
-                for p in self.processes:
-                    if self._shared[p.pid] == ClientProcess.WAIT:
-                        free_id = p.pid
-                        break
-                if free_id == -1:
-                    p = ClientProcess(self._shared, self._condition, self._queue)
-                    self.processes.append(p)
-                self._queue.enqueue(conn.fileno())
+                self._queue.put(conn.fileno())
+                self._condition.notify()
+
+                if not self._queue.empty():
+                    self.processes = [p for p in self.processes if self._shared[p.pid] != ClientProcess.TERMINATED]
+                    self.processes.append(ClientProcess(self._shared, self._condition, self._queue))
         finally:
             for p in self.processes:
-                p.close()
                 p.join()
             soc.close()
 
