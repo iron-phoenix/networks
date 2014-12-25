@@ -66,7 +66,7 @@ class Server:
                 self._queue.put(conn.fileno())
                 self._condition.notify()
 
-                if self._queue.empty():
+                if not self._queue.empty():
                     self.processes = [p for p in self.processes if self._shared[p.pid] != ClientProcess.TERMINATED]
                     self.processes.append(ClientProcess(self._shared, self._condition, self._queue))
         finally:
