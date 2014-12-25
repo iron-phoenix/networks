@@ -1,0 +1,23 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from multiprocessing import Process, Manager, Lock, Condition, reduction
+import socket
+
+class ClientProcess(Process):
+    def __init__(self):
+        Process.__init__(self)
+        self._manager = Manager()
+        self._shared = self._manager.dict()
+        self._lock = Lock()
+        self._condition = Condition(self._lock)
+        self.start()
+
+    def run(self):
+        pass
+
+    def handle():
+        pass
+
+if __name__ == "__main__":
+    pass
