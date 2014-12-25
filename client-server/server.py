@@ -69,7 +69,7 @@ class Server:
                         free_id = p.pid
                         break
                 if free_id == -1:
-                    p = ClientProcess(self._shared, self._condition, self._queue
+                    p = ClientProcess(self._shared, self._condition, self._queue)
                     self.processes.append(p)
                 self._queue.enqueue(conn.fileno())
         finally:
