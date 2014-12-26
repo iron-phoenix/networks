@@ -14,22 +14,33 @@ import matplotlib.pyplot as plt
 HOST = "127.0.0.1"
 PORT = 5000
 
+BS = 16
+pad = lambda s: s + (BS - len(s) % BS) * chr(BS - len(s) % BS)
+unpad = lambda s : s[:-ord(s[len(s)-1:])]
+
 def gen_str():
-    return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
+    return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(16))
+
+def send_request(sock, request):
+    sock.send(request + "@")
+    result = ""
+    while 1:
+        data = sock.recv(4096)
+        result += data
+        if data[-1] == "@":
+            break
+    return result
 
 def client_process():
-    request = {"key": gen_str(), "message": gen_str(), "encryption": random.randint(0, 1)}
-    json_request = json.dumps(request)
+    key, message = gen_str(), gen_str()
     start = time.clock()
     with closing(socket.socket()) as sock:
         sock.connect((HOST, PORT))
-        sock.send(json_request + "@")
-        result = ""
-        while 1:
-            data = sock.recv(4096)
-            result += data
-            if data[-1] == "@":
-                break
+        request = {"key": key, "message": message, "encryption": 1}
+        json_request = json.dumps(request)
+        encrypted = send_request(sock, json_request)
+        decrypted = send_request(sock, json.dumps({"key": key, "message": encrypted, "encryption": 0}))
+        assert decrypted == message
     return time.clock() - start
 
 def launch_client(clients_count):
@@ -41,7 +52,7 @@ def launch_client(clients_count):
     return reduce(lambda a, b: a + b, results) / len(results)
 
 if __name__ == "__main__":
-    xses = [2 ** x for x in range(1, 10)] 
+    xses = [2 ** x for x in range(1, 10)]
     results = [launch_client(client_counts) for client_counts in xses]
     plt.title('Client server')
     plt.xlabel("clients")
