@@ -25,29 +25,25 @@ SOCKET_LIST = []
 #		sock.close()
 
 def client_process(sock):
-	terminated = False
-	while not terminated:
+	while 1:
 		jstr = ""
 		while 1:
 			data = sock.recv(4096)
 			if not data:
-				terminated = True
-				break
+                                return sock.close()
 			jstr += data
 			if data[-1] == "@":
 				break
 		jstr = jstr[:-1]
-                print jstr
 		data = json.loads(jstr)
 
 		encryption = AESCipher(data["key"])
 		if data["encryption"] == 1:
 		        jstr = encryption.encrypt(data["message"])
 		else:
-                        print "dec"
 		        jstr = encryption.decrypt(data["message"])
 		sock.send(jstr + "@")
-	sock.close()
+
 
 def server(workers_count):
 	server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -88,8 +84,6 @@ def server(workers_count):
 					if sock in SOCKET_LIST:
 						SOCKET_LIST.remove(sock)
 	finally:
-		for p in processes:
-			p.terminate()
 		server_socket.close()
 
 if __name__ == "__main__":

@@ -14,8 +14,8 @@ import matplotlib.pyplot as plt
 HOST = "127.0.0.1"
 PORT = 5000
 
-BS = 16
-pad = lambda s: s + (BS - len(s) % BS) * chr(BS - len(s) % BS)
+BS    = 16
+pad   = lambda s: s + (BS - len(s) % BS) * chr(BS - len(s) % BS)
 unpad = lambda s : s[:-ord(s[len(s)-1:])]
 
 def gen_str():
@@ -53,7 +53,7 @@ def launch_client(clients_count):
     return reduce(lambda a, b: a + b, results) / len(results)
 
 if __name__ == "__main__":
-    xses = [2 ** x for x in range(1, 2)]
+    xses = [2 ** x for x in range(1, 14)]
     results = [launch_client(client_counts) for client_counts in xses]
     plt.title('Client server')
     plt.xlabel("clients")
