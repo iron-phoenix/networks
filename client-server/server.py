@@ -11,7 +11,7 @@ from encryption import AESCipher
 HOST = "127.0.0.1"
 PORT = 5000
 SOCKET_LIST = []
-	
+
 
 #def client_process(cond, queue):
 #	while True:
@@ -28,10 +28,8 @@ def client_process(sock):
 	terminated = False
 	while not terminated:
 		jstr = ""
-
 		while 1:
 			data = sock.recv(4096)
-			print data
 			if not data:
 				terminated = True
 				break
@@ -39,11 +37,14 @@ def client_process(sock):
 			if data[-1] == "@":
 				break
 		jstr = jstr[:-1]
+                print jstr
 		data = json.loads(jstr)
+
 		encryption = AESCipher(data["key"])
 		if data["encryption"] == 1:
 		        jstr = encryption.encrypt(data["message"])
 		else:
+                        print "dec"
 		        jstr = encryption.decrypt(data["message"])
 		sock.send(jstr + "@")
 	sock.close()

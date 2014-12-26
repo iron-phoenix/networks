@@ -33,17 +33,16 @@ def send_request(sock, request):
 
 def client_process():
     key, message = gen_str(), gen_str()
-    start = time.clock()
+    start = time.time()
     with closing(socket.socket()) as sock:
         sock.connect((HOST, PORT))
-        request = {"key": key, "message": message, "encryption": 1}
-        json_request = json.dumps(request)
+        json_request = json.dumps({"key": key, "message": message, "encryption": 1})
         encrypted = send_request(sock, json_request)
-        print "Enc"
-        decrypted = send_request(sock, json.dumps({"key": key, "message": encrypted, "encryption": 0}))
-        print "Dec"
+        json_request = json.dumps({"key": key, "message": encrypted, "encryption": 0})
+        decrypted = send_request(sock, json_request)
         assert decrypted == message
-    return time.clock() - start
+    elapsed = time.time() - start
+    return elapsed
 
 def launch_client(clients_count):
     p = Pool()
@@ -54,7 +53,7 @@ def launch_client(clients_count):
     return reduce(lambda a, b: a + b, results) / len(results)
 
 if __name__ == "__main__":
-    xses = [2 ** x for x in range(1, 10)]
+    xses = [2 ** x for x in range(1, 2)]
     results = [launch_client(client_counts) for client_counts in xses]
     plt.title('Client server')
     plt.xlabel("clients")
