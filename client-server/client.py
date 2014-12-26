@@ -15,7 +15,7 @@ HOST = "127.0.0.1"
 PORT = 5000
 
 def gen_str():
-    return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(random.randint(1, 1000)))
+    return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
 
 def client_process():
     request = {"key": gen_str(), "message": gen_str(), "encryption": random.randint(0, 1)}
@@ -41,6 +41,12 @@ def launch_client(clients_count):
     return reduce(lambda a, b: a + b, results) / len(results)
 
 if __name__ == "__main__":
-    results = [launch_client(client_counts) for client_counts in range(1, 5000, 500)]
-    plt.plot(range(1, 5000, 500), results, "ro-")
+    xses = [2 ** x for x in range(1, 10)] 
+    results = [launch_client(client_counts) for client_counts in xses]
+    plt.title('Client server')
+    plt.xlabel("clients")
+    plt.ylabel("ms")
+    plt.xscale("log")
+    plt.yscale("log")
+    plt.plot(xses, results, "ro-")
     plt.show()
