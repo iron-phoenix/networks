@@ -22,12 +22,15 @@ def client_process():
     json_request = json.dumps(request)
     start = time.clock()
     with closing(socket.socket()) as sock:
-        sock.send(json_request)
+        sock.connect((HOST, PORT))
+        sock.send(json_request + "@")
+        result = ""
         while 1:
             data = sock.recv(4096)
-            if not data:
+            result += data
+            if data[-1] == "@":
                 break
-    return time.clock() - time
+    return time.clock() - start
 
 def launch_client(clients_count):
     p = Pool()
@@ -38,6 +41,6 @@ def launch_client(clients_count):
     return reduce(lambda a, b: a + b, results) / len(results)
 
 if __name__ == "__main__":
-    results = [launch_client(client_counts) for client_counts in range(5, 55, 5)]
-    plt.plot(range(5, 55, 5), results, "ro-")
+    results = [launch_client(client_counts) for client_counts in range(1, 2000, 100)]
+    plt.plot(range(1, 2000, 100), results, "ro-")
     plt.show()

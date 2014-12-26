@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from multiprocessing import Process, Manager, Lock, Condition, Queue
+from multiprocessing import Process, Manager, Lock, Condition, Queue, reduction
 from contextlib import closing
 import socket
 import time
@@ -20,6 +20,7 @@ class ClientProcess(Process):
         self._shared = shared
         self._condition = condition
         self._queue = queue
+        self._lock = Lock()
         self.start()
 
     def run(self, timeout=5):
@@ -28,20 +29,31 @@ class ClientProcess(Process):
             self._condition.acquire()
             self._condition.wait(timeout)
             self._condition.release()
-            if not self._queue.empty():
-                # we have the task
-                self._shared[self.pid] = ClientProcess.EXECUTION
-                with closing(socket.fromfd(self._queue.get(), socket.AF_INET, socket.SOCK_STREAM)) as sock:
-                    self.handle(sock)
-                self._shared[self.pid] = ClientProcess.WAIT
-            else:
-                # wake up by timeout
-                self._shared[self.pid] = ClientProcess.TERMINATED
-                break
+            with self._lock:
+                if not self._queue.empty():
+                    print "New connection"
+                    # we have the task
+                    self._shared[self.pid] = ClientProcess.EXECUTION
+                    client_handle = self._queue.get()
+                    fd = reduction.rebuild_handle(client_handle)
+                    with closing(socket.fromfd(fd, socket.AF_INET, socket.SOCK_STREAM)) as sock:
+                        self.handle(sock)
+                    self._shared[self.pid] = ClientProcess.WAIT
+                else:
+                    # wake up by timeout
+                    self._shared[self.pid] = ClientProcess.TERMINATED
+                    break
 
 
     def handle(self, sock):
-        pass
+        json = ""
+        while 1:
+            data = sock.recv(4096)
+            json += data
+            if data[-1] == "@":
+                break
+        json = json[:-1]
+        sock.send(json + "@")
 
 class Server:
     def __init__(self, host, port, hots = 5):
@@ -63,12 +75,16 @@ class Server:
 
             while 1:
                 (conn, addr) = soc.accept()
-                self._queue.put(conn.fileno())
-                self._condition.notify()
+                print "New client"
+                client_handle = reduction.reduce_handle(conn.fileno())
+                self._queue.put(client_handle)
 
                 if not self._queue.empty():
                     self.processes = [p for p in self.processes if self._shared[p.pid] != ClientProcess.TERMINATED]
                     self.processes.append(ClientProcess(self._shared, self._condition, self._queue))
+                self._condition.acquire()
+                self._condition.notify()
+                self._condition.release()
         finally:
             for p in self.processes:
                 p.join()
