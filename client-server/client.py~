@@ -29,7 +29,7 @@ def send_request(sock, request):
         result += data
         if data[-1] == "@":
             break
-    return result[:-1]
+    return result
 
 def client_process():
     key, message = gen_str(), gen_str()
@@ -38,9 +38,9 @@ def client_process():
         sock.connect((HOST, PORT))
         request = {"key": key, "message": message, "encryption": 1}
         json_request = json.dumps(request)
-        encrypted = send_request(sock, json_request)
+        encrypted = send_request(sock, json_request)[:-1]
         print "Enc"
-        decrypted = send_request(sock, json.dumps({"key": key, "message": encrypted, "encryption": 0}))
+        decrypted = send_request(sock, json.dumps({"key": key, "message": encrypted, "encryption": 0}))[:-1]
         print "Dec"
         assert decrypted == message
     return time.clock() - start

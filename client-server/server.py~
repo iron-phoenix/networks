@@ -31,7 +31,6 @@ def client_process(sock):
 
 		while 1:
 			data = sock.recv(4096)
-			print data
 			if not data:
 				terminated = True
 				break
