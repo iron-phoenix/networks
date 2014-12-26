@@ -42,6 +42,7 @@ def server(backlog=5, timeout=15):
                     processes.append(proc)
                     proc.start()
                 elif sock in sockets:
+                    sock.close()
                     sockets.remove(sock)
     finally:
         # Ctrl-C

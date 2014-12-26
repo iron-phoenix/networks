@@ -17,7 +17,7 @@ def send_request(sock, request):
     protocol.send(sock, request)
     return protocol.recv(sock)
 
-def client_process(requests=4):
+def client_process(requests=1):
     before = time.time()
     with closing(socket.socket()) as sock:
         sock.connect((HOST, PORT))
@@ -26,4 +26,4 @@ def client_process(requests=4):
             encrypted = send_request(sock, protocol.gen(key, message))
             decrypted = send_request(sock, protocol.gen(key, encrypted, 0))
             assert decrypted == message
-    return time.time() - before
+    return (time.time() - before) * 1000.0

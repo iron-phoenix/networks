@@ -15,9 +15,7 @@ def recv(socket):
         return None
     size = struct.unpack('>I', raw[:4])[0] - len(raw[4:])
     while size > 0:
-        print "Size: " + size
         rest  = socket.recv(BUF_SIZE)
-        print rest
         raw  += rest
         size -= len(rest)
     assert size == 0
