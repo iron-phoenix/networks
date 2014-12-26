@@ -41,6 +41,6 @@ def launch_client(clients_count):
     return reduce(lambda a, b: a + b, results) / len(results)
 
 if __name__ == "__main__":
-    results = [launch_client(client_counts) for client_counts in range(1, 1000, 100)]
-    plt.plot(range(1, 1000, 100), results, "ro-")
+    results = [launch_client(client_counts) for client_counts in range(1, 5000, 500)]
+    plt.plot(range(1, 5000, 500), results, "ro-")
     plt.show()
