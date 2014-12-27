@@ -119,7 +119,7 @@ def task_delete(id):
 		tasks.remove(task)
 		return flask.Response('DELETED', content_type = 'text/plain', status = 200)
 	except StopIteration:
-		flask.abort(400)
+		flask.abort(404)
 	
 @app.route('/rock/task/<int:id>', methods=['GET'])
 def task_get(id):
@@ -136,7 +136,7 @@ def task_get(id):
 		if content_type in ['application/xml', 'text/xml']:
 			return flask.render_template('task.xml', band_name = task['name'], albums = db[task['name']]['albums'][:task['count']])
 	except StopIteration:
-		flask.abort(400)
+		flask.abort(404)
 
 @app.route('/rock/task/<int:id>', methods=['POST'])
 def task_modify(id):
