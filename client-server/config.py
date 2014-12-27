@@ -3,4 +3,3 @@
 
 HOST     = 'localhost'
 PORT     = 2015
-BUF_SIZE = 8196

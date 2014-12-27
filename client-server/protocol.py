@@ -3,7 +3,8 @@
 
 import msgpack
 import struct
-from config import BUF_SIZE
+
+BUF_SIZE = 8196
 
 def send(socket, msg):
     data = msgpack.packb(msg)

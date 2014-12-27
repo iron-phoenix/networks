@@ -5,7 +5,7 @@ from multiprocessing import Process
 import sys
 import socket
 import select
-from encryption import AESCipher
+from encryption import TripleDESCipher
 from config import HOST, PORT
 import protocol
 
@@ -15,7 +15,7 @@ def client_process(sock):
         if not data:
             return sock.close()
 
-        encryption = AESCipher(data["key"])
+        encryption = TripleDESCipher(data["key"])
         if data["encryption"] == 1:
             protocol.send(sock, encryption.encrypt(data["message"]))
         else:
