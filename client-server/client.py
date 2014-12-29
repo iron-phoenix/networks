@@ -2,7 +2,7 @@
 # coding=utf-8
 
 from contextlib import closing
-import socket
+from gevent import socket
 from config import HOST, PORT
 import protocol
 import random
@@ -17,13 +17,15 @@ def send_request(sock, request):
     protocol.send(sock, request)
     return protocol.recv(sock)
 
-def client_process(requests=1, length=16):
-    before = time.time()
+def client_process(requests=10, length=512):
     with closing(socket.socket()) as sock:
         sock.connect((HOST, PORT))
+        before = time.clock()
         for _ in range(requests):
             key, message = gen_str(), gen_str(length)
             encrypted = send_request(sock, protocol.gen(key, message))
             decrypted = send_request(sock, protocol.gen(key, encrypted, 0))
             assert decrypted == message
-    return (time.time() - before) * 1000.0
+            yield (time.clock() - before) * 1000.0
+            before = time.clock()
+    yield (time.clock() - before) * 1000.0

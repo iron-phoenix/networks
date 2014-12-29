@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding=utf-8
 
-from multiprocessing import Pool
+import gevent
 import matplotlib.pyplot as plt
 from client import client_process
 from optparse import OptionParser
@@ -17,9 +17,9 @@ def stats(xs):
 
 def launch_clients(clients_count, times):
     def iteration():
-        pool = Pool()
-        asyncs = map(lambda _: pool.apply_async(client_process), range(clients_count))
-        results = [r.get() for r in asyncs]
+        jobs = [gevent.spawn(client_process) for _ in range(clients_count)]
+        gevent.joinall(jobs)
+        results = [r.value for r in jobs]
         return mean(results)
     return stats([iteration() for _ in range(times)])
 

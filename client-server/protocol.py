@@ -8,7 +8,10 @@ BUF_SIZE = 8196
 
 def send(socket, msg):
     data = msgpack.packb(msg)
-    return socket.send(struct.pack('>I', len(data)) + data)
+    msg = struct.pack('>I', len(data)) + data
+    while len(msg) > 0:
+        sent = socket.send(msg)
+        msg = msg[sent:]
 
 def recv(socket):
     raw = socket.recv(BUF_SIZE)

@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # coding=utf-8
 
-from multiprocessing import Process, Value
+import multiprocessing
+from multiprocessing import Process
 import sys
 import socket
 from encryption import TripleDESCipher
@@ -12,6 +13,7 @@ def client_process(sock, server_sock, timeout=15):
     server_sock.close()
     sock.settimeout(timeout)
     while 1:
+
         data = protocol.recv(sock)
         if not data:
             return sock.close()
@@ -29,15 +31,18 @@ def server(backlog=5):
     server_socket.bind((HOST, PORT))
     server_socket.listen(backlog)
     processes = []
+    sockets = []
 
     try:
         while 1:
             conn, addr = server_socket.accept()
+            sockets.append(conn)
             print "new client " + str(addr)
             proc = Process(target=client_process, args=(conn, server_socket))
             processes.append(proc)
             proc.start()
             conn.close()
+            print len(multiprocessing.active_children())
     finally:
         # Ctrl-C
         for proc in processes:
