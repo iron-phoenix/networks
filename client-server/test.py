@@ -7,7 +7,10 @@ from client import client_process
 from optparse import OptionParser
 import math
 
-def mean(xs):
+def mean(xs, winzor_left=None):
+    if winzor_left:
+        xs.sort()
+        xs = xs[int(winzor_left * len(xs)):]
     return sum(xs) / len(xs)
 
 def stats(xs):
@@ -15,13 +18,29 @@ def stats(xs):
     stddev = math.sqrt(mean([(x - avg) * (x - avg) for x in xs]))
     return avg, stddev
 
-def launch_clients(clients_count, times):
-    def iteration():
-        jobs = [gevent.spawn(client_process) for _ in range(clients_count)]
+def launch_clients(clients_count):
+    print clients_count
+    def iteration(requests):
+        jobs = [gevent.spawn(client_process, requests) for _ in range(clients_count)]
         gevent.joinall(jobs)
-        results = [r.value for r in jobs]
-        return mean(results)
-    return stats([iteration() for _ in range(times)])
+        return [r.value for r in jobs]
+
+    antonk_satisfied = False
+    requests = 10
+    while not antonk_satisfied:
+        result = iteration(requests)
+        request_mean = [mean([x[i] for x in result], winzor_left = 0.1)
+                        for i in range(int(len(result[0]) * 0.9))]
+        m  = mean(request_mean)
+        outliers = [x for x in request_mean if abs(x - m) > 0.2 * m]
+        if len(outliers) < 0.1 * requests:
+            print "Hurray!"
+            antonk_satisfied = True
+        else:
+            print "Failed requests:", requests, "outliers:", len(outliers)
+        requests += 10
+
+    return stats(request_mean)
 
 
 if __name__ == "__main__":
@@ -29,9 +48,6 @@ if __name__ == "__main__":
     parser.add_option("-m", "--max-clients", type="int",
                       help="Max number of clients",
                       dest="m", default=2**13)
-    parser.add_option("-t", "--tests", type="int",
-                      help="Number of tests",
-                      dest="t", default=2)
     parser.add_option("-l", "--log-scale",
                       help="Both axes in log scale",
                       dest="l", action="store_true", default=False)
@@ -49,7 +65,7 @@ if __name__ == "__main__":
         plt.xscale("log")
         plt.yscale("log")
 
-    results = [launch_clients(client_counts, options.t) for client_counts in xs]
+    results = [launch_clients(client_counts) for client_counts in xs]
     avg, stddev = zip(*results)
     plt.errorbar(xs, avg, yerr=stddev)
     plt.plot(xs, avg)

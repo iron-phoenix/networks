@@ -17,15 +17,18 @@ def send_request(sock, request):
     protocol.send(sock, request)
     return protocol.recv(sock)
 
-def client_process(requests=10, length=512):
+def client_process(requests=100500, length=2**10):
+    results = []
     with closing(socket.socket()) as sock:
         sock.connect((HOST, PORT))
-        before = time.clock()
         for _ in range(requests):
             key, message = gen_str(), gen_str(length)
+            before = time.time()
             encrypted = send_request(sock, protocol.gen(key, message))
+            results.append((time.time() - before) * 1000.0)
+            before = time.time()
             decrypted = send_request(sock, protocol.gen(key, encrypted, 0))
+            # (enc_time + dec_time) / 2
+            results.append((time.time() - before) * 1000.0)
             assert decrypted == message
-            yield (time.clock() - before) * 1000.0
-            before = time.clock()
-    yield (time.clock() - before) * 1000.0
+    return results
