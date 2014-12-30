@@ -12,17 +12,17 @@ class ClientProcess(Process):
     def __init__(self):
         Process.__init__(self)
         self.parent, self.child = Pipe()
-        self.state = False
+        self.state = Lock()
         self.start()
 
     def run(self):
         while 1:
             is_task = self.child.recv()
-            self.state = True
+            self.state.acquire()
             if is_task:
                 client_socket = socket.fromfd(reduction.recv_handle(self.child), socket.AF_INET, socket.SOCK_STREAM)
                 self.client_process(client_socket)
-            self.state = False
+            self.state.release()
                         
     def client_process(self, sock):
         while 1:
@@ -37,8 +37,9 @@ class ClientProcess(Process):
                 protocol.send(sock, encryption.decrypt(data["message"]))
 
     def add_task(self):
-        if not self.state:
+        if self.state.acquire(False):
             self.parent.send(True)
+	    self.state.release()
             return True
         return False
 
@@ -47,7 +48,7 @@ def server(backlog = 5):
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_socket.bind((HOST, PORT))
     server_socket.listen(backlog)
-    processes = []
+    processes = [ClientProcess() for x in xrange(10)]
 
     try:
         while 1:
