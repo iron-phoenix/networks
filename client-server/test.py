@@ -25,9 +25,9 @@ def launch_clients(clients_count):
         gevent.joinall(jobs)
         return [r.value for r in jobs]
 
-    antonk_satisfied = False
+    converges = False
     requests = 10
-    while not antonk_satisfied:
+    while not converges:
         result = iteration(requests)
         request_mean = [mean([x[i] for x in result], winzor_left = 0.1)
                         for i in range(int(len(result[0]) * 0.9))]
@@ -35,7 +35,7 @@ def launch_clients(clients_count):
         outliers = [x for x in request_mean if abs(x - m) > 0.2 * m]
         if len(outliers) < 0.1 * requests:
             print "Hurray!"
-            antonk_satisfied = True
+            converges = True
         else:
             print "Failed requests:", requests, "outliers:", len(outliers)
         requests += 10
