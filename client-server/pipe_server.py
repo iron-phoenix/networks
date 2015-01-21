@@ -17,13 +17,10 @@ class ClientProcess(Process):
 
     def run(self):
         while 1:
-            is_task = self.child.recv()
+            active_clients = self.child.recv()
             self.state.acquire()
-            if is_task:
-                data = reduction.recv_handle(self.child)
-                client_socket = socket.fromfd(data[0], socket.AF_INET, socket.SOCK_STREAM)
-                active_clients = data[1]
-                self.client_process(client_socket, active_clients)
+            client_socket = socket.fromfd(reduction.recv_handle(self.child), socket.AF_INET, socket.SOCK_STREAM)
+            self.client_process(client_socket, active_clients)
             self.state.release()
                         
     def client_process(self, sock, active_clients):
@@ -70,9 +67,9 @@ def server(backlog = 5):
             if not task_send:
                 p = ClientProcess()
                 processes.append(p)
-                p.add_task()
-                reduction.send_handle(p.parent, (conn.fileno(), clients), p.pid)
                 clients += 1
+                p.add_task(clients)
+                reduction.send_handle(p.parent, (conn.fileno(), clients), p.pid)
     finally:
         # Ctrl-C
         for proc in processes:
