@@ -29,12 +29,16 @@ def launch_clients(clients_count):
     requests = 10
     while not converges:
         result = iteration(requests)
-        request_mean = [mean([x[i] for x in result], winzor_left = 0.1)
-                        for i in range(int(len(result[0]) * 0.9))]
+        for c in result:
+            for x in c:
+                if x[0] != clients_count:
+                    print "Check me: actual:", x[0], "expected:", clients_count
+        result = [[x[1] for x in c if x[0] == clients_count] for c in result]
+        request_mean = [mean(x) for x in result]
         m  = mean(request_mean)
-        outliers = [x for x in request_mean if abs(x - m) > 0.2 * m]
+        outliers = [x for x in request_mean if abs(x - m) > 0.1 * m]
         if len(outliers) < 0.1 * requests:
-            print "Hurray!"
+            print "Hurray!", "outliers:", len(outliers)
             converges = True
         else:
             print "Failed requests:", requests, "outliers:", len(outliers)
