@@ -60,7 +60,7 @@ def server(backlog = 5):
             task_send = False
             for p in processes:
                 if p.add_task():
-                    reduction.send_handle(p.parent, (conn.fileno(), clients), p.pid)
+                    reduction.send_handle(p.parent, conn.fileno(), p.pid)
                     client += 1
                     task_send = True
                     break
