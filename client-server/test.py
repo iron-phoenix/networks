@@ -27,18 +27,20 @@ def launch_clients(clients_count):
 
     converges = False
     requests = 10
+    outliers = 0
     while not converges:
         result = iteration(requests)
         for c in result:
             for x in c:
                 if x[0] != clients_count:
-                    print "Check me: actual:", x[0], "expected:", clients_count
+                    outliers += 1
+        print "Expected:", clients_count * 2 * requests, "outliers:", outliers
         result = [[x[1] for x in c if x[0] == clients_count] for c in result]
         request_mean = [mean(x) for x in result]
         m  = mean(request_mean)
         outliers = [x for x in request_mean if abs(x - m) > 0.1 * m]
         if len(outliers) < 0.1 * requests:
-            print "Hurray!", "outliers:", len(outliers)
+            print "Hurray!"
             converges = True
         else:
             print "Failed requests:", requests, "outliers:", len(outliers)
@@ -52,6 +54,9 @@ if __name__ == "__main__":
     parser.add_option("-m", "--max-clients", type="int",
                       help="Max number of clients",
                       dest="m", default=2**13)
+    parser.add_option("-n", "--min-clients", type="int",
+                      help="Minimum number of clients",
+                      dest="n", default=1)
     parser.add_option("-l", "--log-scale",
                       help="Both axes in log scale",
                       dest="l", action="store_true", default=False)
@@ -60,7 +65,7 @@ if __name__ == "__main__":
                       dest="o", default="out.png")
     (options, args) = parser.parse_args()
 
-    xs = [2 ** x for x in range(int(math.log(options.m, 2)) + 1)]
+    xs = [2 ** x for x in range(int(math.log(options.n, 2)), int(math.log(options.m, 2)) + 1)]
     plt.title('TripleDES encryption/decryption server test')
     plt.xlabel("clients")
     plt.ylabel("response time in ms")
